@@ -54,6 +54,22 @@ const BasicGroupChannelSample = (props) => {
             const updatedChannels = stateRef.current.channels.map((channel) => {
                 const updatedChannel = channels.find(incomingChannel => incomingChannel.url === channel.url);
                 if (updatedChannel) {
+                    console.log(updatedChannel)
+                    if (Notification.permission === "granted") {
+                        // Check whether notification permissions have already been granted;
+                        // if so, create a notification
+                        const notification = new Notification(updatedChannel.lastMessage.message);
+                        // …
+                    } else if (Notification.permission !== "denied") {
+                        // We need to ask the user for permission
+                        Notification.requestPermission().then((permission) => {
+                        // If the user accepts, let's create a notification
+                        if (permission === "granted") {
+                            const notification = new Notification(updatedChannel.lastMessage.message);
+                            // …
+                        }
+                        });
+                    }
                     return updatedChannel;
                 } else {
                     return channel;
@@ -67,7 +83,6 @@ const BasicGroupChannelSample = (props) => {
     const messageHandlers = {
         onMessagesAdded: (context, channel, messages) => {
             const updatedMessages = [...stateRef.current.messages, ...messages];
-
             updateState({ ...stateRef.current, messages: updatedMessages });
 
         },
@@ -158,7 +173,7 @@ const BasicGroupChannelSample = (props) => {
         updateState({ ...state, currentlyJoinedChannel: null })
     }
 
-    const handleCreateChannel = async (channelName = "testChannel",) => {
+    const handleCreateChannel = async (channelName = "testChannel") => {
         const [groupChannel, error] = await createChannel(channelName, state.groupChannelMembers);
         if (error) {
             return onError(error);
@@ -586,6 +601,7 @@ const CreateUserForm = ({
 const loadChannels = async (channelHandlers) => {
     const groupChannelFilter = new GroupChannelFilter();
     groupChannelFilter.includeEmpty = true;
+    groupChannelFilter.customTypesFilter = ["Harshitha"];
 
     const collection = sb.groupChannel.createGroupChannelCollection({
         filter: groupChannelFilter,
@@ -623,8 +639,9 @@ const createChannel = async (channelName, userIdsToInvite) => {
     try {
         const groupChannelParams = {};
         groupChannelParams.invitedUserIds = userIdsToInvite;
-        groupChannelParams.name = channelName;
+        groupChannelParams.name = channelName + " (Harshitha)";
         groupChannelParams.operatorUserIds = userIdsToInvite;
+        groupChannelParams.customType = "Harshitha"
         const groupChannel = await sb.groupChannel.createChannel(groupChannelParams);
         return [groupChannel, null];
     } catch (error) {
